@@ -1,5 +1,7 @@
 #include "config_manager.h"
 
+char* current_config;
+
 char* read_config(const char* directory) {
   FILE *fp;
 
@@ -45,6 +47,8 @@ char* read_config(const char* directory) {
     printf("Dotman file(.dotman) doesn't exist, using default config\n");
     buffer = DEFAULT_CONFIG;
   }
+
+  current_config = buffer;
   return buffer;
 }
 
@@ -72,4 +76,65 @@ char* join_path(const char* dir, const char* filename) {
   strcat(result, filename);
   
   return result;
+}
+
+char* ltrim(char* s) {
+  while (isspace((unsigned char)*s)) s++;
+  return s;
+}
+
+void chomp(char* s) {
+  size_t len = strlen(s);
+  while (len > 0 && (s[len - 1] == '\n' || s[len - 1] == '\r')) {
+    s[--len] = '\0';
+  }
+}
+
+char* parse_alias(const char* alias) {
+  // Copy string
+  char* copy = malloc(strlen(current_config) + 1);
+  if (!copy) {
+    perror("malloc");
+    return NULL;
+  }
+  strcpy(copy, current_config);
+
+  char* line = copy;
+
+  char* default_alias;
+
+  while (line && *line) {
+    char *next = strchr(line, '\n');
+    if (next) {
+      *next = '\0';
+      next++;
+    }
+
+    chomp(line);
+    char* trimmed = ltrim(line);
+
+    if (*trimmed != '\0' && *trimmed != '#') {
+      char* equal = strchr(trimmed, '=');
+      if (equal) {
+        *equal = '\0';
+        char* key = ltrim(trimmed);
+        char* value = ltrim(equal + 1);
+
+        if (strcmp(key, alias) == 0) {
+          // Alias match
+          free(copy);
+          return value;
+        } else if (strcmp(key, ".") == 0) {
+          // Default alias
+          default_alias = value;
+        }
+      }
+    }
+
+    line = next;
+  }
+
+  // Falling back to the default alias
+  free(copy);
+  return join_path(default_alias, alias);
 }
