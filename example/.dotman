@@ -1,0 +1,12 @@
+# This is the dotman configuration file
+
+# You can define folder aliases with the equal(=) operator, like so:
+root=/
+
+# You can utilize environment variables:
+home=$HOME
+
+
+# You can define the default folder with the dot(.) symbol.
+# It is the fallback in case there are no alias matches with the above:
+.=$HOME

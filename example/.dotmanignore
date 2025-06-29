@@ -1,0 +1,5 @@
+# This is the ignore file, use it like the .gitignore file in git
+
+some-ignored-file
+
+some-ignored-folder/
