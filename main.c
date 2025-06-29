@@ -85,7 +85,6 @@ int main(int argc, char* argv[]) {
   char* config = read_config(dir);
   printf(config);
 
-  free(config);
   return 0;
   /*
   printf("You have entered %d arguments:\n", argc);

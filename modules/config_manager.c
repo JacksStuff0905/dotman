@@ -8,38 +8,43 @@ char* read_config(const char* directory) {
   char* path = join_path(directory, filename);
 
   fp = fopen(path, "r");
-  if (!fp) {
-    perror("fopen");
-    return NULL;
-  }
 
+  free(path);
 
-  if (fseek(fp, 0, SEEK_END) != 0) {
-    perror("fseek");
+  char* buffer;
+
+  if (fp) {
+    if (fseek(fp, 0, SEEK_END) != 0) {
+      perror("fseek");
+      fclose(fp);
+      return NULL;
+    }
+
+    long length = ftell(fp);
+    if (length < 0) {
+      perror("ftell");
+      fclose(fp);
+      return NULL;
+    }
+
+    rewind(fp);
+
+    buffer = malloc(length + 1); // +1 for null terminator
+    if (!buffer) {
+      perror("malloc");
+      fclose(fp);
+      return NULL;
+    }
+
+    fread(buffer, 1, length, fp);
+    buffer[length] = '\0';
+
     fclose(fp);
-    return NULL;
+
+  } else {
+    printf("Dotman file(.dotman) doesn't exist, using default config\n");
+    buffer = DEFAULT_CONFIG;
   }
-
-  long length = ftell(fp);
-  if (length < 0) {
-    perror("ftell");
-    fclose(fp);
-    return NULL;
-  }
-  rewind(fp);
-
-  char* buffer = malloc(length + 1); // +1 for null terminator
-  if (!buffer) {
-    perror("malloc");
-    fclose(fp);
-    return NULL;
-  }
-
-  fread(buffer, 1, length, fp);
-  buffer[length] = '\0';
-
-  fclose(fp);
-
   return buffer;
 }
 

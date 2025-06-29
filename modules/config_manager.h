@@ -12,6 +12,7 @@
   #define PATH_SEP '/'
 #endif
 
+#define DEFAULT_CONFIG "root=/\nhome=$HOME/\n.=$HOME/"
 
 char* read_config(const char* directory);
 
