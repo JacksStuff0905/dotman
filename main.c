@@ -14,6 +14,15 @@ int main(int argc, char* argv[]) {
     {"stow", no_argument, NULL, 'S'},
     {"delete", no_argument, NULL, 'D'},
     {"restow", no_argument, NULL, 'R'},
+
+    // TODO: Finish implementations
+    {"adopt", no_argument, NULL, 0},
+    {"no-folding", no_argument, NULL, 0},
+    {"ignore", required_argument, NULL, 0},
+    {"defer", required_argument, NULL, 0},
+    {"override", required_argument, NULL, 0},
+    {"dotfiles", no_argument, NULL, 0},
+
     {"version", no_argument, NULL, 'V'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
