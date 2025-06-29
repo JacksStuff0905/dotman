@@ -42,6 +42,21 @@ int main(int argc, char* argv[]) {
     }
   }
 
+
+  // Extra arguments
+
+  char* package_name;
+
+  if (optind < argc) {
+    printf("Package specified: %s\n", argv[optind]);
+    package_name = argv[optind];
+    optind++;
+  }
+
+  for (; optind < argc; optind++) {
+    printf("Extra argument: %s\n", argv[optind]);
+  }
+
   return 0;
   /*
   printf("You have entered %d arguments:\n", argc);
@@ -56,7 +71,9 @@ int main(int argc, char* argv[]) {
 
 
 
-int listdir(char* array[], int size) {
+char* listdir(char* directory) {
+  char* res[] = "";
+
   struct dirent *de; // Pointer for directory entry
   
   // opendir() returns a pointer of type DIR
@@ -79,9 +96,9 @@ int listdir(char* array[], int size) {
 
     printf("%s ", de->d_name);
     printf("%d\n", de->d_type);
+
   }
 
   closedir(dr);
   return 0;
-
 }
