@@ -4,13 +4,29 @@ int main(int argc, char* argv[]) {
 
   int opt;
 
-  while ((opt = getopt(argc, argv, ":nd:t:v::SDRVh")) != -1) {
+  char* dir = ".";
+
+  static struct option long_options[] = {
+    {"no", no_argument, NULL, 'n'},
+    {"dir", required_argument, NULL, 'd'},
+    {"target", required_argument, NULL, 't'},
+    {"verbose", optional_argument, NULL, 'v'},
+    {"stow", no_argument, NULL, 'S'},
+    {"delete", no_argument, NULL, 'D'},
+    {"restow", no_argument, NULL, 'R'},
+    {"version", no_argument, NULL, 'V'},
+    {"help", no_argument, NULL, 'h'},
+    {NULL, 0, NULL, 0}
+  };
+
+  while ((opt = getopt_long(argc, argv, ":nd:t:v::SDRVh", long_options, NULL)) != -1) {
     switch (opt) {
       case 'n':
         printf("Option -n (--no, --simulate) selected\n");
         break;
       case 'd':
         printf("Option -d (--dir) selected with argument %s\n", optarg);
+        dir = optarg;
         break;
       case 't':
         printf("Option -t (--target) selected with argument %s\n", optarg);
@@ -57,6 +73,10 @@ int main(int argc, char* argv[]) {
     printf("Extra argument: %s\n", argv[optind]);
   }
 
+  char* config = read_config(dir);
+  printf(config);
+
+  free(config);
   return 0;
   /*
   printf("You have entered %d arguments:\n", argc);
@@ -72,7 +92,7 @@ int main(int argc, char* argv[]) {
 
 
 char* listdir(char* directory) {
-  char* res[] = "";
+  //char* res[] = "";
 
   struct dirent *de; // Pointer for directory entry
   
