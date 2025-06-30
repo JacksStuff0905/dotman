@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
   #define PATH_SEP '\\'

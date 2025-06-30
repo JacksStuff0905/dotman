@@ -1,3 +1,4 @@
 main: main.c
 	echo "Compiling main target"
-	cc main.c modules/*.c -o ./bin/main
+	mkdir -p bin
+	cc -std=c17 main.c modules/*.c -o bin/main
