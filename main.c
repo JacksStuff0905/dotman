@@ -85,6 +85,10 @@ int main(int argc, char* argv[]) {
   char* config = read_config(dir);
   printf(config);
 
+  char* package_dir = join_path(dir, package_name);
+
+  process_directory(package_dir);
+
   return 0;
   /*
   printf("You have entered %d arguments:\n", argc);
@@ -99,13 +103,12 @@ int main(int argc, char* argv[]) {
 
 
 
-char* listdir(char* directory) {
-  //char* res[] = "";
+int process_directory(char* directory) {
 
   struct dirent *de; // Pointer for directory entry
   
   // opendir() returns a pointer of type DIR
-  DIR *dr = opendir(".");
+  DIR *dr = opendir(directory);
 
   if (dr == NULL) { // opendir returns NULL if it couldn't open directory
     printf("Could not open directory");
@@ -113,18 +116,24 @@ char* listdir(char* directory) {
   }
 
   while ((de = readdir(dr)) != NULL) {
+    /*
     if (de->d_type != DT_DIR) {
       printf("File is not a directory: %s, skipping...\n", de->d_name);
       continue;
     }
+    */
 
     if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
       continue;
     }
 
     printf("%s ", de->d_name);
-    printf("%d\n", de->d_type);
+    char* alias = parse_alias(de->d_name);
 
+    if (!alias)
+      continue;
+
+    //printf("\n\n\n$HOME: %s\n", getenv("HOME"));
   }
 
   closedir(dr);

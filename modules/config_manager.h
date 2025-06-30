@@ -24,4 +24,7 @@ char* parse_alias(const char* alias);
 char* ltrim(char* s);
 void chomp(char* s);
 
+
+char* parse_env_vars(const char* input);
+
 #endif // CONFIG_MANAGER_H_

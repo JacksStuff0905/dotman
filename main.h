@@ -13,6 +13,6 @@
 
 int main(int argc, char* argv[]);
 
-char* listdir(char* directory);
+int process_directory(char* directory);
 
 #endif // MAIN_H_
