@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
   }
 
   char* config = read_config(dir);
-  printf(config);
+  printf("%s", config);
 
   char* package_dir = join_path(dir, package_name);
 
@@ -127,8 +127,9 @@ int process_directory(char* directory) {
       continue;
     }
 
-    printf("%s ", de->d_name);
+    printf("d_name: %s\n", de->d_name);
     char* alias = parse_alias(de->d_name);
+    printf("alias: %s\n", alias);
 
     if (!alias)
       continue;

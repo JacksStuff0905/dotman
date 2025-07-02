@@ -9,9 +9,7 @@ char* read_config(const char* directory) {
 
   char* path = join_path(directory, filename);
 
-  fp = fopen(path, "r");
-
-  free(path);
+  fp = fopen(path, "r"); free(path);
 
   char* buffer;
 
@@ -117,21 +115,17 @@ char* parse_alias(const char* alias) {
       char* equal = strchr(trimmed, '=');
       if (equal) {
         *equal = '\0';
-        printf("aaaaa\n");
         char* key = ltrim(trimmed);
         char* value = ltrim(equal + 1);
-        printf("Line: %s = %s\n", key, value);
-        printf("%d\n", strcmp(key, "."));
         if (strcmp(key, alias) == 0) {
           // Alias match
+          char* new_value = malloc(strlen(value) + 1);
+          strcpy(new_value, value);
           free(copy);
-          printf("Value: %s", value);
-          printf("   Parsed: %s\n", parse_env_vars(value));
-          return parse_env_vars(value);
+          
+          return parse_env_vars(new_value);
         } else if (strcmp(key, ".") == 0) {
           // Default alias
-          printf("Value: %s\n", value);
-          printf("   Parsed: %s", parse_env_vars(value));
           default_alias = parse_env_vars(value);
         }
       }
@@ -141,41 +135,40 @@ char* parse_alias(const char* alias) {
   }
 
   // Falling back to the default alias
+  //free(copy);
+  char* new_alias = malloc(strlen(alias) + 1);
+  strcpy(new_alias, alias);
   free(copy);
-  return join_path(default_alias, alias);
+  return join_path(default_alias, new_alias);
 }
 
 
 
 char* parse_env_vars(const char* input) {
   char* copy = malloc(strlen(input) + 1);
-  char* result;
-  char* tmp_env;
+  char* result = malloc(0);
+  char* tmp_env = malloc(0);
   strcpy(copy, input);
 
   bool is_processing_env = false;
+  int count = 0;
   while (*copy != '\0') {
-    printf("   %c\n", *copy);
-    if (is_processing_env == false && tmp_env && strlen(tmp_env) > 0) {
-      printf("getting env...%s\n", tmp_env);
-
+    if (!is_processing_env && tmp_env != NULL && strlen(tmp_env) > 0) {
       char* env = getenv(tmp_env);
+
 
       if (!result)
         result = malloc(strlen(env) + 2);
       else
         result = realloc(result, strlen(result) + strlen(env) + 2);
       strcat(result, env);
-      printf("cccccc\n");
       free(tmp_env);
     }
-    printf("test50\n");
 
     if (*copy == '$') {
       is_processing_env = true;
     } else if (is_processing_env) {
       if (*copy == PATH_SEP) {
-        printf("separator\n");
         is_processing_env = false;
 
         if (!result) 
@@ -185,18 +178,14 @@ char* parse_env_vars(const char* input) {
         result[strlen(result)] = *copy;
         result[strlen(result) + 1] = '\0';
       } else {
-        printf("env continue\n");
-
         if (!tmp_env)
           tmp_env = (char*)malloc(2);
         else
           tmp_env = (char*)realloc(tmp_env, strlen(tmp_env) + 2);
         tmp_env[strlen(tmp_env)] = *copy;
         tmp_env[strlen(tmp_env) + 1] = '\0';
-        printf("env: %s\n", tmp_env);
       }
     } else {
-      printf("other\n");
 
       if (!result)
         result = (char*)malloc(2);
@@ -206,13 +195,17 @@ char* parse_env_vars(const char* input) {
       result[strlen(result) + 1] = '\0';
     }
     copy++;
+    count++;
   }
 
-  if (strlen(tmp_env) > 0)
+  if (tmp_env && strlen(tmp_env) > 0)
     strcat(result, getenv(tmp_env));
 
+  copy -= count;
   free(copy);
-  free(tmp_env);
+  
+  if (tmp_env)
+    free(tmp_env);
 
   return result;
 }
