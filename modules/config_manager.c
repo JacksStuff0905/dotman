@@ -153,23 +153,23 @@ char* parse_env_vars(const char* input) {
   bool is_processing_env = false;
   int count = 0;
   while (*copy != '\0') {
-    if (!is_processing_env && tmp_env != NULL && strlen(tmp_env) > 0) {
-      char* env = getenv(tmp_env);
-
-
-      if (!result)
-        result = malloc(strlen(env) + 2);
-      else
-        result = realloc(result, strlen(result) + strlen(env) + 2);
-      strcat(result, env);
-      free(tmp_env);
-    }
-
+    
     if (*copy == '$') {
       is_processing_env = true;
     } else if (is_processing_env) {
       if (*copy == PATH_SEP) {
         is_processing_env = false;
+
+        char* env = getenv(tmp_env);
+
+
+        if (!result)
+          result = malloc(strlen(env) + 2);
+        else
+          result = realloc(result, strlen(result) + strlen(env) + 2);
+        strcat(result, env);
+        free(tmp_env);
+        tmp_env= malloc(0);
 
         if (!result) 
           result = (char*)malloc(2);

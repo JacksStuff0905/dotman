@@ -4,7 +4,7 @@
 root=/
 
 # You can utilize environment variables:
-home=$HOME
+home=$HOME/test
 
 
 # You can define the default folder with the dot(.) symbol.
