@@ -8,6 +8,14 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <pwd.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 #ifdef _WIN32
   #define PATH_SEP '\\'
 #else
@@ -27,5 +35,7 @@ void chomp(char* s);
 
 
 char* parse_env_vars(const char* input);
+
+char* read_env_from_user_proc(const char* varname, uid_t target_uid);
 
 #endif // CONFIG_MANAGER_H_

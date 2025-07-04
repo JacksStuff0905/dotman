@@ -45,6 +45,9 @@ char* read_config(const char* directory) {
     printf("Dotman file(.dotman) doesn't exist, using default config\n");
     buffer = DEFAULT_CONFIG;
   }
+  
+  printf("%s\n", parse_env_vars(buffer));
+  buffer = parse_env_vars(buffer);
 
   current_config = buffer;
   return buffer;
@@ -117,28 +120,38 @@ char* parse_alias(const char* alias) {
         *equal = '\0';
         char* key = ltrim(trimmed);
         char* value = ltrim(equal + 1);
+
+        printf("key: %s\n", key);
+        printf("value: %s\n", value);
         if (strcmp(key, alias) == 0) {
           // Alias match
           char* new_value = malloc(strlen(value) + 1);
           strcpy(new_value, value);
           free(copy);
           
-          return parse_env_vars(new_value);
+          return (new_value);
         } else if (strcmp(key, ".") == 0) {
           // Default alias
-          default_alias = parse_env_vars(value);
+          char* new_value = malloc(strlen(value) + 1);
+          strcpy(new_value, value);
+          free(copy);
+
+          default_alias = new_value;
+          printf("Setting default %s\n", default_alias);
         }
       }
     }
 
     line = next;
   }
+  printf("test1\n");
 
   // Falling back to the default alias
   //free(copy);
   char* new_alias = malloc(strlen(alias) + 1);
   strcpy(new_alias, alias);
   free(copy);
+  printf("Using default %s %s\n", default_alias, join_path(default_alias, new_alias));
   return join_path(default_alias, new_alias);
 }
 
@@ -150,18 +163,36 @@ char* parse_env_vars(const char* input) {
   char* tmp_env = malloc(0);
   strcpy(copy, input);
 
+
+  /*
+  const char *sudo_user = getenv("SUDO_USER");
+  if (!sudo_user) {
+      fprintf(stderr, "Run with sudo.\n");
+      return NULL;
+  }
+
+  struct passwd *pw = getpwnam(sudo_user);
+  if (!pw) {
+      perror("getpwnam");
+      return NULL;
+  }
+  */
+
+
   bool is_processing_env = false;
   int count = 0;
   while (*copy != '\0') {
     
+    printf(" %c\n", *copy);
     if (*copy == '$') {
       is_processing_env = true;
     } else if (is_processing_env) {
-      if (*copy == PATH_SEP) {
+      if (*copy == PATH_SEP || *copy == '\n') {
         is_processing_env = false;
 
-        char* env = getenv(tmp_env);
-
+        printf("1111\n");
+        char* env = getenv(tmp_env);//, pw->pw_uid);
+        printf("2222\n");
 
         if (!result)
           result = malloc(strlen(env) + 2);
@@ -170,6 +201,8 @@ char* parse_env_vars(const char* input) {
         strcat(result, env);
         free(tmp_env);
         tmp_env= malloc(0);
+
+        printf("5555\n");
 
         if (!result) 
           result = (char*)malloc(2);
@@ -194,12 +227,15 @@ char* parse_env_vars(const char* input) {
       result[strlen(result)] = *copy;
       result[strlen(result) + 1] = '\0';
     }
+    printf("3333\n");
+
     copy++;
     count++;
   }
+  printf("test5\n");
 
   if (tmp_env && strlen(tmp_env) > 0)
-    strcat(result, getenv(tmp_env));
+    strcat(result, getenv(tmp_env));//, pw->pw_uid));
 
   copy -= count;
   free(copy);
@@ -208,4 +244,56 @@ char* parse_env_vars(const char* input) {
     free(tmp_env);
 
   return result;
+}
+
+
+
+char *read_env_from_user_proc(const char *varname, uid_t target_uid) {
+    DIR *proc = opendir("/proc");
+    if (!proc) return NULL;
+
+    struct dirent *entry;
+    while ((entry = readdir(proc)) != NULL) {
+        if (!isdigit(entry->d_name[0])) continue;
+
+        char path[256];
+        snprintf(path, sizeof(path), "/proc/%s/status", entry->d_name);
+        FILE *status = fopen(path, "r");
+        if (!status) continue;
+
+        uid_t uid = -1;
+        char line[256];
+        while (fgets(line, sizeof(line), status)) {
+            if (sscanf(line, "Uid:\t%d", &uid) == 1) break;
+        }
+        fclose(status);
+
+        if (uid != target_uid) continue;
+
+        // Found a process from the target user
+        snprintf(path, sizeof(path), "/proc/%s/environ", entry->d_name);
+        int fd = open(path, O_RDONLY);
+        if (fd == -1) continue;
+
+        char buffer[8192];
+        ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
+        close(fd);
+        if (n <= 0) continue;
+
+        buffer[n] = '\0';
+
+        // Look for VAR=...
+        char *ptr = buffer;
+        while (ptr < buffer + n) {
+            size_t len = strlen(ptr);
+            if (strncmp(ptr, varname, strlen(varname)) == 0 && ptr[strlen(varname)] == '=') {
+                closedir(proc);
+                return strdup(ptr + strlen(varname) + 1);
+            }
+            ptr += len + 1;
+        }
+    }
+
+    closedir(proc);
+    return NULL;
 }
